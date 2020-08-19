@@ -1,0 +1,48 @@
+********************************************************************************************
+***Creates launch config, Autoscaling group and scaling policy (Average CPU utilization)****
+********************************************************************************************
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: AutoScalingGroup
+
+Resources: 
+
+  LC1:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      LaunchConfigurationName: LC1
+      ImageId: ami-07d9160fa81ccffb5
+      InstanceType: t2.micro
+      KeyName: Udemy
+      SecurityGroups: 
+        - sg-0af72a3187a6470ca
+      UserData:
+        Fn::Base64: !Sub
+          #!/bin/bash -ex # your script here
+
+  ASG1:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    DependsOn: LC1
+    Properties:
+      AutoScalingGroupName: ASG1
+      AvailabilityZones: !GetAZs ''
+      LaunchConfigurationName: LC1
+      HealthCheckGracePeriod : 200 
+      DesiredCapacity: 3
+      MaxSize: 6
+      MinSize: 2
+      Tags:
+        - Key: Name
+          Value: ASG1 Instances
+          PropagateAtLaunch: True
+
+  CPUUTIL:
+    Type: AWS::AutoScaling::ScalingPolicy
+    DependsOn: ASG1
+    Properties:
+      AutoScalingGroupName: ASG1
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: 50
