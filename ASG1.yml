@@ -1,7 +1,3 @@
-********************************************************************************************
-***Creates launch config, Autoscaling group and scaling policy (Average CPU utilization)****
-********************************************************************************************
-
 AWSTemplateFormatVersion: 2010-09-09
 Description: AutoScalingGroup
 
@@ -17,8 +13,17 @@ Resources:
       SecurityGroups: 
         - sg-0af72a3187a6470ca
       UserData:
-        Fn::Base64: !Sub
-          #!/bin/bash -ex # your script here
+        Fn::Base64: |
+          #!/bin/bash
+          sudo yum update -y
+          sudo su
+          yum install -y httpd.x86_64
+          systemctl start httpd.service
+          systemctl enable httpd.service
+          cd /var/www/html
+          echo “This is a test page running on Apache on EC2 in the AWS Cloud from $(hostname -f)” > index.html
+          sudo amazon-linux-extras install epel -y
+          sudo yum install stress -y
 
   ASG1:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -27,7 +32,7 @@ Resources:
       AutoScalingGroupName: ASG1
       AvailabilityZones: !GetAZs ''
       LaunchConfigurationName: LC1
-      HealthCheckGracePeriod : 200 
+      HealthCheckGracePeriod : 300 
       DesiredCapacity: 3
       MaxSize: 6
       MinSize: 2
