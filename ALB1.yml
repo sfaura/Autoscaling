@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: ApplicationLoadBalancer
+
+Resources: 
+
+  ALB1:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      IpAddressType: ipv4
+      Name: ALB1
+      Scheme: internet-facing
+      SecurityGroups:
+        - sg-0af72a3187a6470ca
+      SubnetMappings: 
+        - SubnetId: subnet-0b40bdffad10bacb7
+        - SubnetId: subnet-0d333eee591c0e7cf
+        - SubnetId: subnet-0e7fd0facfdc1c1c2
+      Type: application
+
+  ALB1Listener:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    DependsOn: ALBTG1
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTG1
+      LoadBalancerArn: !Ref ALB1
+      Port: 80
+      Protocol: HTTP
+
+  ALBTG1:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPort: 80
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 5
+      Name: ALBTG1
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
+      UnhealthyThresholdCount: 2
+      VpcId: vpc-03848d06a3370f6f5
